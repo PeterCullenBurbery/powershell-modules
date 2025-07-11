@@ -1,4 +1,4 @@
-function Get-IanaTimeZone {
+﻿function Get-IanaTimeZone {
     $win_tz = (Get-TimeZone).Id
     $iana_tz = $null
 
