@@ -95,3 +95,89 @@ function Restart-FileExplorer {
         Write-Host "❌ Failed to restart Explorer: $_" -ForegroundColor Red
     }
 }
+
+function Get-PowerShellVersionDetails {
+    [OutputType([pscustomobject])]
+    param ()
+
+    $results = [ordered]@{}
+
+    $results['PSVersion']         = $PSVersionTable.PSVersion.ToString()
+    $results['PSEdition']         = $PSVersionTable.PSEdition
+    $results['MajorVersion']      = $PSVersionTable.PSVersion.Major
+    $results['ParallelSupported'] = $false
+    $results['TernarySupported']  = $false
+    $results['NullCoalescing']    = $false
+    $results['PipelineChain']     = $false
+    $results['PSStyleAvailable']  = $false
+    $results['GetErrorAvailable'] = $false
+
+    # 1. ForEach-Object -Parallel (robust test with -join)
+    try {
+        $output = 1..2 | ForEach-Object -Parallel { $_ * 2 }
+        if (($output -join ',') -eq '2,4') {
+            $results['ParallelSupported'] = $true
+        }
+    } catch {}
+
+    # 2. Ternary operator
+    try {
+        $ternaryTest = Invoke-Expression '[bool]$x = $true; $x ? "yes" : "no"'
+        if ($ternaryTest -eq 'yes') {
+            $results['TernarySupported'] = $true
+        }
+    } catch {}
+
+    # 3. Null-coalescing operator
+    try {
+        $nullCoalesce = Invoke-Expression '$null ?? "fallback"'
+        if ($nullCoalesce -eq 'fallback') {
+            $results['NullCoalescing'] = $true
+        }
+    } catch {}
+
+    # 4. Pipeline chain operator (&&)
+    try {
+        $pipelineTest = Invoke-Expression '1..1 | ForEach-Object { "ok" } && "yes"'
+        if ($pipelineTest -match 'yes') {
+            $results['PipelineChain'] = $true
+        }
+    } catch {}
+
+    # 5. $PSStyle
+    try {
+        if ($null -ne $PSStyle) {
+            $results['PSStyleAvailable'] = $true
+        }
+    } catch {}
+
+    # 6. Get-Error cmdlet
+    try {
+        if (Get-Command Get-Error -ErrorAction SilentlyContinue) {
+            $results['GetErrorAvailable'] = $true
+        }
+    } catch {}
+
+    # Final conclusion
+    $results['Conclusion'] = if (
+        $results['PSEdition'] -eq 'Core' -or
+        $results['MajorVersion'] -ge 7 -or
+        $results['ParallelSupported'] -or
+        $results['TernarySupported'] -or
+        $results['NullCoalescing'] -or
+        $results['PipelineChain'] -or
+        $results['PSStyleAvailable'] -or
+        $results['GetErrorAvailable']
+    ) {
+        "✅ PowerShell 7+ (Core)"
+    } elseif (
+        $results['PSEdition'] -eq 'Desktop' -and
+        $results['MajorVersion'] -eq 5
+    ) {
+        "🖥️ Windows PowerShell 5.1 (Desktop)"
+    } else {
+        "❓ Unknown or unsupported PowerShell version"
+    }
+
+    [pscustomobject]$results
+}
