@@ -198,6 +198,7 @@ function Add-ToPath {
             throw "❌ Path does not exist: $absPath"
         }
 
+        # If it's a file, get its parent folder
         if (-not (Get-Item $absPath).PSIsContainer) {
             $absPath = Split-Path $absPath
         }
@@ -205,7 +206,7 @@ function Add-ToPath {
         $normalized = $absPath.TrimEnd('\')
         Write-Host "📁 Normalized path: $normalized"
 
-        # Step 2: Get raw PATH (preserving symbolic entries, but we'll expand them manually)
+        # Step 2: Get PATH from registry (with symbolic variables)
         $reg = [Microsoft.Win32.Registry]::LocalMachine.OpenSubKey(
             "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
         )
@@ -215,7 +216,7 @@ function Add-ToPath {
         Write-Host "📍 Current PATH (raw):"
         Write-Host $rawPath
 
-        # Step 3: Normalize and expand
+        # Step 3: Process and expand entries
         $entries = $rawPath -split ';'
         $normalizedLower = $normalized.ToLowerInvariant()
         $seen = @{}
@@ -232,14 +233,19 @@ function Add-ToPath {
             $expanded = [Environment]::ExpandEnvironmentVariables($trimmed).TrimEnd('\')
             $lowerExpanded = $expanded.ToLowerInvariant()
 
-            Write-Host ("   - Original: {0,-70} → Expanded: {1}" -f $trimmed, $expanded)
+            # Log only if expansion changed the string
+            if ($trimmed -ne $expanded) {
+                Write-Host ("   - Original: {0,-70} → Expanded: {1}" -f $trimmed, $expanded)
+            }
 
+            # Detect if the normalized path already exists
             if ($lowerExpanded -eq $normalizedLower) {
                 $alreadyExists = $true
             }
 
+            # Avoid duplicates
             if (-not $seen.ContainsKey($lowerExpanded)) {
-                $rebuilt += $expanded  # All expanded forms only
+                $rebuilt += $expanded
                 $seen[$lowerExpanded] = $true
             }
         }
@@ -253,7 +259,7 @@ function Add-ToPath {
         Write-Host "🧩 New PATH to set in registry (fully expanded):"
         Write-Host $newPath
 
-        # Step 4: Overwrite registry with flattened PATH
+        # Step 4: Overwrite registry with new flattened PATH
         Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" -Name Path -Value $newPath
         Write-Host "✅ Path added to the top of system PATH."
 
@@ -297,7 +303,7 @@ function Remove-FromPath {
         [string]$PathToRemove
     )
 
-    Write-Host "🗑️ Input path to remove: $PathToRemove"
+    Write-Host "🧹 Input path to remove: $PathToRemove"
 
     try {
         # Step 1: Resolve absolute path
@@ -314,7 +320,7 @@ function Remove-FromPath {
         $normalizedLower = $normalized.ToLowerInvariant()
         Write-Host "📁 Normalized path: $normalized"
 
-        # Step 2: Read raw PATH from registry
+        # Step 2: Read PATH from registry without expanding env vars
         $reg = [Microsoft.Win32.Registry]::LocalMachine.OpenSubKey(
             "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
         )
@@ -324,12 +330,13 @@ function Remove-FromPath {
         Write-Host "📍 Current PATH (raw):"
         Write-Host $rawPath
 
-        # Step 3: Process entries
+        # Step 3: Split and rebuild entries (without the one we want to remove)
         $entries = $rawPath -split ';'
+        $seen = @{}
         $rebuilt = @()
         $removed = $false
 
-        Write-Host "🔍 Evaluating entries for removal:"
+        Write-Host "🔍 Checking each PATH entry against target:"
 
         foreach ($entry in $entries) {
             $trimmed = $entry.Trim().TrimEnd('\')
@@ -338,27 +345,32 @@ function Remove-FromPath {
             $expanded = [Environment]::ExpandEnvironmentVariables($trimmed).TrimEnd('\')
             $lowerExpanded = $expanded.ToLowerInvariant()
 
-            Write-Host ("   - Original: {0,-70} → Expanded: {1}" -f $trimmed, $expanded)
-
-            if ($lowerExpanded -eq $normalizedLower) {
-                Write-Host "❌ Removing: $expanded"
-                $removed = $true
-                continue  # Skip this one
+            if ($trimmed -ne $expanded) {
+                Write-Host ("   - Original: {0,-70} → Expanded: {1}" -f $trimmed, $expanded)
             }
 
-            $rebuilt += $expanded  # Use expanded form
+            if ($lowerExpanded -eq $normalizedLower) {
+                Write-Host "❌ Match found. Skipping: $expanded"
+                $removed = $true
+                continue
+            }
+
+            if (-not $seen.ContainsKey($lowerExpanded)) {
+                $rebuilt += $expanded
+                $seen[$lowerExpanded] = $true
+            }
         }
 
         if (-not $removed) {
-            Write-Host "✅ No matching entry found — nothing changed."
+            Write-Host "✅ Path not found in system PATH."
             return
         }
 
         $newPath = ($rebuilt -join ';')
-        Write-Host "🧹 New PATH to set in registry (fully expanded):"
+        Write-Host "🧩 New PATH to set in registry (fully expanded):"
         Write-Host $newPath
 
-        # Step 4: Write back cleaned PATH
+        # Step 4: Update registry
         Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" -Name Path -Value $newPath
         Write-Host "✅ Path removed from system PATH."
 
