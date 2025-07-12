@@ -181,3 +181,216 @@ function Get-PowerShellVersionDetails {
 
     [pscustomobject]$results
 }
+
+function Add-ToPath {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$PathToAdd
+    )
+
+    Write-Host "🔧 Input path: $PathToAdd"
+
+    try {
+        # Step 1: Resolve absolute path
+        $absPath = [System.IO.Path]::GetFullPath($PathToAdd)
+        if (-not (Test-Path $absPath)) {
+            throw "❌ Path does not exist: $absPath"
+        }
+
+        if (-not (Get-Item $absPath).PSIsContainer) {
+            $absPath = Split-Path $absPath
+        }
+
+        $normalized = $absPath.TrimEnd('\')
+        Write-Host "📁 Normalized path: $normalized"
+
+        # Step 2: Get raw PATH (preserving symbolic entries, but we'll expand them manually)
+        $reg = [Microsoft.Win32.Registry]::LocalMachine.OpenSubKey(
+            "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
+        )
+        $rawPath = $reg.GetValue("Path", "", "DoNotExpandEnvironmentNames")
+        $reg.Close()
+
+        Write-Host "📍 Current PATH (raw):"
+        Write-Host $rawPath
+
+        # Step 3: Normalize and expand
+        $entries = $rawPath -split ';'
+        $normalizedLower = $normalized.ToLowerInvariant()
+        $seen = @{}
+        $rebuilt = @($normalized)
+        $seen[$normalizedLower] = $true
+        $alreadyExists = $false
+
+        Write-Host "🔍 Checking each existing PATH entry against target:"
+
+        foreach ($entry in $entries) {
+            $trimmed = $entry.Trim().TrimEnd('\')
+            if ([string]::IsNullOrWhiteSpace($trimmed)) { continue }
+
+            $expanded = [Environment]::ExpandEnvironmentVariables($trimmed).TrimEnd('\')
+            $lowerExpanded = $expanded.ToLowerInvariant()
+
+            Write-Host ("   - Original: {0,-70} → Expanded: {1}" -f $trimmed, $expanded)
+
+            if ($lowerExpanded -eq $normalizedLower) {
+                $alreadyExists = $true
+            }
+
+            if (-not $seen.ContainsKey($lowerExpanded)) {
+                $rebuilt += $expanded  # All expanded forms only
+                $seen[$lowerExpanded] = $true
+            }
+        }
+
+        if ($alreadyExists) {
+            Write-Host "✅ Path already present in system PATH (via expanded match)."
+            return
+        }
+
+        $newPath = ($rebuilt -join ';')
+        Write-Host "🧩 New PATH to set in registry (fully expanded):"
+        Write-Host $newPath
+
+        # Step 4: Overwrite registry with flattened PATH
+        Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" -Name Path -Value $newPath
+        Write-Host "✅ Path added to the top of system PATH."
+
+        # Step 5: Broadcast environment change
+        $signature = @"
+[DllImport("user32.dll", SetLastError=true, CharSet=CharSet.Auto)]
+public static extern IntPtr SendMessageTimeout(IntPtr hWnd, uint Msg, UIntPtr wParam, string lParam, uint fuFlags, uint uTimeout, out UIntPtr lpdwResult);
+"@
+        Add-Type -MemberDefinition $signature -Name 'Win32SendMessageTimeout' -Namespace Win32Functions
+
+        $HWND_BROADCAST = [IntPtr]0xffff
+        $WM_SETTINGCHANGE = 0x001A
+        $SMTO_ABORTIFHUNG = 0x0002
+        $result = [UIntPtr]::Zero
+
+        $r = [Win32Functions.Win32SendMessageTimeout]::SendMessageTimeout(
+            $HWND_BROADCAST,
+            $WM_SETTINGCHANGE,
+            [UIntPtr]::Zero,
+            "Environment",
+            $SMTO_ABORTIFHUNG,
+            5000,
+            [ref]$result
+        )
+
+        if ($r -eq [IntPtr]::Zero) {
+            Write-Host "⚠️ Environment change broadcast may have failed."
+        } else {
+            Write-Host "📢 Environment update broadcast sent."
+        }
+
+    } catch {
+        Write-Error $_
+    }
+}
+
+function Remove-FromPath {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$PathToRemove
+    )
+
+    Write-Host "🗑️ Input path to remove: $PathToRemove"
+
+    try {
+        # Step 1: Resolve absolute path
+        $absPath = [System.IO.Path]::GetFullPath($PathToRemove)
+        if (-not (Test-Path $absPath)) {
+            throw "❌ Path does not exist: $absPath"
+        }
+
+        if (-not (Get-Item $absPath).PSIsContainer) {
+            $absPath = Split-Path $absPath
+        }
+
+        $normalized = $absPath.TrimEnd('\')
+        $normalizedLower = $normalized.ToLowerInvariant()
+        Write-Host "📁 Normalized path: $normalized"
+
+        # Step 2: Read raw PATH from registry
+        $reg = [Microsoft.Win32.Registry]::LocalMachine.OpenSubKey(
+            "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
+        )
+        $rawPath = $reg.GetValue("Path", "", "DoNotExpandEnvironmentNames")
+        $reg.Close()
+
+        Write-Host "📍 Current PATH (raw):"
+        Write-Host $rawPath
+
+        # Step 3: Process entries
+        $entries = $rawPath -split ';'
+        $rebuilt = @()
+        $removed = $false
+
+        Write-Host "🔍 Evaluating entries for removal:"
+
+        foreach ($entry in $entries) {
+            $trimmed = $entry.Trim().TrimEnd('\')
+            if ([string]::IsNullOrWhiteSpace($trimmed)) { continue }
+
+            $expanded = [Environment]::ExpandEnvironmentVariables($trimmed).TrimEnd('\')
+            $lowerExpanded = $expanded.ToLowerInvariant()
+
+            Write-Host ("   - Original: {0,-70} → Expanded: {1}" -f $trimmed, $expanded)
+
+            if ($lowerExpanded -eq $normalizedLower) {
+                Write-Host "❌ Removing: $expanded"
+                $removed = $true
+                continue  # Skip this one
+            }
+
+            $rebuilt += $expanded  # Use expanded form
+        }
+
+        if (-not $removed) {
+            Write-Host "✅ No matching entry found — nothing changed."
+            return
+        }
+
+        $newPath = ($rebuilt -join ';')
+        Write-Host "🧹 New PATH to set in registry (fully expanded):"
+        Write-Host $newPath
+
+        # Step 4: Write back cleaned PATH
+        Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" -Name Path -Value $newPath
+        Write-Host "✅ Path removed from system PATH."
+
+        # Step 5: Broadcast environment change
+        $signature = @"
+[DllImport("user32.dll", SetLastError=true, CharSet=CharSet.Auto)]
+public static extern IntPtr SendMessageTimeout(IntPtr hWnd, uint Msg, UIntPtr wParam, string lParam, uint fuFlags, uint uTimeout, out UIntPtr lpdwResult);
+"@
+        Add-Type -MemberDefinition $signature -Name 'Win32SendMessageTimeout' -Namespace Win32Functions
+
+        $HWND_BROADCAST = [IntPtr]0xffff
+        $WM_SETTINGCHANGE = 0x001A
+        $SMTO_ABORTIFHUNG = 0x0002
+        $result = [UIntPtr]::Zero
+
+        $r = [Win32Functions.Win32SendMessageTimeout]::SendMessageTimeout(
+            $HWND_BROADCAST,
+            $WM_SETTINGCHANGE,
+            [UIntPtr]::Zero,
+            "Environment",
+            $SMTO_ABORTIFHUNG,
+            5000,
+            [ref]$result
+        )
+
+        if ($r -eq [IntPtr]::Zero) {
+            Write-Host "⚠️ Environment change broadcast may have failed."
+        } else {
+            Write-Host "📢 Environment update broadcast sent."
+        }
+
+    } catch {
+        Write-Error $_
+    }
+}
