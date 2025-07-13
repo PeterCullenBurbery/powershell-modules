@@ -406,3 +406,43 @@ public static extern IntPtr SendMessageTimeout(IntPtr hWnd, uint Msg, UIntPtr wP
         Write-Error $_
     }
 }
+
+function Get-FileSize {
+    <#
+    .SYNOPSIS
+    Returns the total size in bytes of a file or all files within a directory.
+
+    .DESCRIPTION
+    This function accepts a path to either a file or directory.
+    If a file, it returns its size.
+    If a directory, it recursively computes the sum of all file sizes inside.
+
+    .PARAMETER Path
+    The path to the file or directory.
+
+    .EXAMPLE
+    Get-FileSize -Path "C:\Users\Administrator\Desktop"
+
+    .OUTPUTS
+    [Int64] The total size in bytes.
+    #>
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$Path
+    )
+
+    if (-not (Test-Path -LiteralPath $Path)) {
+        throw "Path '$Path' does not exist."
+    }
+
+    $item = Get-Item -LiteralPath $Path
+
+    if ($item.PSIsContainer) {
+        $size = Get-ChildItem -Path $Path -Recurse -File -Force -ErrorAction SilentlyContinue |
+                Measure-Object -Property Length -Sum
+        return $size.Sum
+    } else {
+        return $item.Length
+    }
+}
