@@ -446,3 +446,51 @@ function Get-FileSize {
         return $item.Length
     }
 }
+
+function Get-FileSizeHumanReadable {
+    <#
+    .SYNOPSIS
+    Returns the total size of a file or directory in a human-readable format with three decimal places.
+
+    .DESCRIPTION
+    This function takes a path to a file or directory. If it's a file, it reports its size.
+    If it's a directory, it recursively sums all contained file sizes. The size is returned
+    as a string formatted with the appropriate unit: bytes, KB, MB, GB, or TB.
+
+    .PARAMETER Path
+    The file or directory to evaluate.
+
+    .EXAMPLE
+    Get-FileSizeHumanReadable -Path "C:\Users\Administrator\Desktop"
+
+    .OUTPUTS
+    [string] A human-readable string like "123.456 MB".
+    #>
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$Path
+    )
+
+    if (-not (Test-Path -LiteralPath $Path)) {
+        throw "Path '$Path' does not exist."
+    }
+
+    $totalBytes = 0
+
+    $item = Get-Item -LiteralPath $Path
+    if ($item.PSIsContainer) {
+        $totalBytes = (Get-ChildItem -Path $Path -Recurse -File -Force -ErrorAction SilentlyContinue |
+                      Measure-Object -Property Length -Sum).Sum
+    } else {
+        $totalBytes = $item.Length
+    }
+
+    switch ($totalBytes) {
+        { $_ -ge 1TB } { return ('{0:N3} TB' -f ($totalBytes / 1TB)) }
+        { $_ -ge 1GB } { return ('{0:N3} GB' -f ($totalBytes / 1GB)) }
+        { $_ -ge 1MB } { return ('{0:N3} MB' -f ($totalBytes / 1MB)) }
+        { $_ -ge 1KB } { return ('{0:N3} KB' -f ($totalBytes / 1KB)) }
+        default        { return "$totalBytes bytes" }
+    }
+}
