@@ -292,6 +292,14 @@ public static extern IntPtr SendMessageTimeout(IntPtr hWnd, uint Msg, UIntPtr wP
             Write-Host "📢 Environment update broadcast sent."
         }
 
+        # Step 6: Check for refreshenv and invoke if available
+        if (Get-Command -Name refreshenv -ErrorAction SilentlyContinue) {
+            Write-Host "♻️  Calling 'refreshenv' to update current session..."
+            refreshenv
+        } else {
+            Write-Host "ℹ️  'refreshenv' not available in this session."
+        }
+
     } catch {
         Write-Error $_
     }
