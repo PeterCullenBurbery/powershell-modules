@@ -494,3 +494,115 @@ function Get-FileSizeHumanReadable {
         default        { return "$totalBytes bytes" }
     }
 }
+
+function Bring-BackTheRightClickMenu {
+<#
+.SYNOPSIS
+Enables the classic Windows 10-style right-click context menu in Windows 11.
+
+.DESCRIPTION
+This function modifies the Windows registry to enable the classic context menu 
+by creating a specific registry key under the current user's hive. It then 
+restarts Windows File Explorer to apply the change.
+
+The registry path created is:
+  HKCU:\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32
+
+This tweak is commonly used on Windows 11 systems to restore the familiar 
+context menu behavior found in Windows 10.
+
+.EXAMPLE
+Bring-BackTheRightClickMenu
+
+Applies the registry tweak and restarts File Explorer.
+
+.NOTES
+Author: Peter Cullen Burbery
+Requires: Windows 11, Administrator privileges may be needed in some configurations
+
+.LINK
+https://learn.microsoft.com/en-us/windows/win32/sysinfo/registry
+
+#>
+    [CmdletBinding()]
+    param ()
+
+    $registryPath = "HKCU:\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32"
+
+    try {
+        if (-not (Test-Path $registryPath)) {
+            New-Item -Path $registryPath -Force | Out-Null
+        }
+
+        Set-ItemProperty -Path $registryPath -Name '(default)' -Value '' -Force
+        Write-Host "✅ Classic right-click menu registry tweak applied."
+
+        Write-Host "🔄 Restarting File Explorer..."
+        Stop-Process -Name explorer -Force
+        Start-Process explorer.exe
+
+        Write-Host "✅ File Explorer restarted. Classic menu should be active."
+
+    } catch {
+        Write-Error "❌ Failed to apply classic menu tweak: $_"
+    }
+}
+
+function Use-Windows11RightClickMenu {
+<#
+.SYNOPSIS
+Restores the default Windows 11-style right-click context menu.
+
+.DESCRIPTION
+This function deletes the registry key that forces the classic Windows 10-style
+context menu, restoring the default Windows 11 behavior.
+
+It removes the following registry keys:
+  HKCU:\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}
+  HKCU:\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32
+
+After cleaning up the registry, it restarts File Explorer so the change takes effect immediately.
+
+.EXAMPLE
+Use-Windows11RightClickMenu
+
+Removes the registry tweak and restarts Explorer to restore the Windows 11 menu.
+
+.NOTES
+Author: Peter Cullen Burbery
+Requires: Windows 11
+Clears user-specific context menu override.
+
+.LINK
+https://learn.microsoft.com/en-us/windows/win32/sysinfo/registry
+
+#>
+    [CmdletBinding()]
+    param ()
+
+    $baseKey = "HKCU:\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}"
+    $subKey = "$baseKey\InprocServer32"
+
+    try {
+        if (Test-Path $subKey) {
+            Remove-Item -Path $subKey -Recurse -Force
+            Write-Host "🗑️ Removed subkey: $subKey"
+        }
+
+        if (Test-Path $baseKey) {
+            Remove-Item -Path $baseKey -Recurse -Force
+            Write-Host "🗑️ Removed key: $baseKey"
+        }
+
+        Write-Host "✅ Restored Windows 11 right-click menu."
+
+        Write-Host "🔄 Restarting File Explorer..."
+        Stop-Process -Name explorer -Force
+        Start-Process explorer.exe
+
+        Write-Host "✅ File Explorer restarted. Default menu should be active."
+
+    } catch {
+        Write-Error "❌ Failed to restore Windows 11 right-click menu: $_"
+    }
+}
