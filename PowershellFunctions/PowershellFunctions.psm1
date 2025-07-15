@@ -308,7 +308,7 @@ function Remove-FromPath {
 
     try {
         # Step 1: Resolve absolute path
-        $absPath = [System.IO.Path]::GetFullPath($PathToRemove)
+        $absPath = [System.IO.Path]::GetFullPath((Resolve-Path -LiteralPath $PathToRemove).Path)
         if (-not (Test-Path $absPath)) {
             throw "❌ Path does not exist: $absPath"
         }
