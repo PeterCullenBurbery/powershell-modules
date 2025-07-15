@@ -113,7 +113,7 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-ReleaseNotes = @'
+            ReleaseNotes = @'
 Version 1.2.0: Fixed Add-ToPath and Remove-FromPath to correctly resolve relative paths (e.g., ".") using Resolve-Path. Improves reliability when modifying system PATH from any location.
 
 Version 1.1.0: Added Bring-BackTheRightClickMenu and Use-Windows11RightClickMenu to toggle classic and default context menus in Windows 11. Improved tagging and documentation.
