@@ -354,6 +354,7 @@ function Remove-FromPath {
             $expanded = [Environment]::ExpandEnvironmentVariables($trimmed).TrimEnd('\')
             $lowerExpanded = $expanded.ToLowerInvariant()
 
+            # Log only if expansion changed the string
             if ($trimmed -ne $expanded) {
                 Write-Host ("   - Original: {0,-70} → Expanded: {1}" -f $trimmed, $expanded)
             }
@@ -409,6 +410,14 @@ public static extern IntPtr SendMessageTimeout(IntPtr hWnd, uint Msg, UIntPtr wP
             Write-Host "⚠️ Environment change broadcast may have failed."
         } else {
             Write-Host "📢 Environment update broadcast sent."
+        }
+
+        # Step 6: Check for refreshenv and invoke if available
+        if (Get-Command -Name refreshenv -ErrorAction SilentlyContinue) {
+            Write-Host "♻️  Calling 'refreshenv' to update current session..."
+            refreshenv
+        } else {
+            Write-Host "ℹ️  'refreshenv' not available in this session."
         }
 
     } catch {
