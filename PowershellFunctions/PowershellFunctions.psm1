@@ -660,3 +660,25 @@ function Add-DefenderExclusion {
         Write-Error "❌ Failed to exclude from Defender: $_"
     }
 }
+
+function Get-PowershellPath {
+    <#
+    .SYNOPSIS
+    Displays the current user's PATH environment variable as a formatted table with index numbers.
+
+    .DESCRIPTION
+    Splits the PATH variable by semicolon, assigns each entry a zero-padded index, and displays it in a table.
+
+    .EXAMPLE
+    Get-PowershellPath
+    #>
+
+    $i = 1
+    $env:Path -split ";" | ForEach-Object {
+        [PSCustomObject]@{
+            Index = "{0:000}" -f $i
+            Path  = $_
+        }
+        $i++
+    } | Format-Table -AutoSize
+}

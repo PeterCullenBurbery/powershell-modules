@@ -13,7 +13,7 @@
     # This will be updated to something like RootModule = ...
 
     # Version number of this module.
-    ModuleVersion     = '1.3.0'
+    ModuleVersion     = '1.4.0'
 
     # Supported PSEditions
     # CompatiblePSEditions = @()
@@ -114,6 +114,8 @@
 
             # ReleaseNotes of this module
             ReleaseNotes = @'
+Version 1.4.0: Added Get-PowershellPath to display the PATH environment variable in a zero-padded, indexed table. Uses Format-Table for clear formatting and supports inspection of system path entries.
+
 Version 1.3.0: Added Add-DefenderExclusion to exclude folders from Microsoft Defender. Automatically excludes the parent folder if a file is specified. Requires administrator privileges.
 
 Version 1.2.0: Fixed Add-ToPath and Remove-FromPath to correctly resolve relative paths (e.g., ".") using Resolve-Path. Improves reliability when modifying system PATH from any location.
