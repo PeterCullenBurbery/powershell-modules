@@ -193,7 +193,7 @@ function Add-ToPath {
 
     try {
         # Step 1: Resolve absolute path
-        $absPath = [System.IO.Path]::GetFullPath($PathToAdd)
+        $absPath = [System.IO.Path]::GetFullPath((Resolve-Path -LiteralPath $PathToAdd).Path)
         if (-not (Test-Path $absPath)) {
             throw "❌ Path does not exist: $absPath"
         }
@@ -215,11 +215,12 @@ function Add-ToPath {
 
         Write-Host "📍 Current PATH (raw):"
         Write-Host $rawPath
-
+        
         # Step 3: Process and expand entries
+        # Step 3: Normalize and deduplicate
         $entries = $rawPath -split ';'
         $normalizedLower = $normalized.ToLowerInvariant()
-        $seen = @{}
+        $seen = @{ }
         $rebuilt = @($normalized)
         $seen[$normalizedLower] = $true
         $alreadyExists = $false
