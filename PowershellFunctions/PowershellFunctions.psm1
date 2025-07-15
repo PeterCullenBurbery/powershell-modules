@@ -607,3 +607,56 @@ https://learn.microsoft.com/en-us/windows/win32/sysinfo/registry
         Write-Error "❌ Failed to restore Windows 11 right-click menu: $_"
     }
 }
+
+function Add-DefenderExclusion {
+    <#
+    .SYNOPSIS
+    Excludes a file or folder from Microsoft Defender.
+
+    .DESCRIPTION
+    If a file is provided, its parent folder will be excluded instead. Requires administrator privileges.
+
+    .PARAMETER Path
+    The absolute path to a file or folder to exclude from Defender.
+
+    .EXAMPLE
+    Add-DefenderExclusion -Path "C:\MyFolder"
+
+    .EXAMPLE
+    Add-DefenderExclusion -Path "C:\MyFolder\myfile.exe"
+    #>
+
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$Path
+    )
+
+    try {
+        $fullPath = [System.IO.Path]::GetFullPath($Path)
+
+        if (-not (Test-Path $fullPath)) {
+            throw "❌ Path does not exist: $fullPath"
+        }
+
+        $item = Get-Item $fullPath
+
+        # If it's a file, use parent directory
+        if (-not $item.PSIsContainer) {
+            $fullPath = $item.Directory.FullName
+        }
+
+        # Normalize: convert to full path, replace forward slashes, ensure trailing backslash
+        $normalizedPath = ([System.IO.Path]::GetFullPath($fullPath)) -replace '/', '\'
+        if (-not $normalizedPath.EndsWith('\')) {
+            $normalizedPath += '\'
+        }
+
+        # Add exclusion
+        Add-MpPreference -ExclusionPath $normalizedPath
+
+        Write-Host "✅ Excluded from Microsoft Defender: $normalizedPath"
+    } catch {
+        Write-Error "❌ Failed to exclude from Defender: $_"
+    }
+}
