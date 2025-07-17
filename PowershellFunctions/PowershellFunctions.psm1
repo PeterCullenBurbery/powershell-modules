@@ -707,7 +707,6 @@ function Enable-LongFilePaths {
 
     .DESCRIPTION
     Modifies the registry to set LongPathsEnabled to 1. Requires admin privileges.
-    A reboot is needed for the change to take effect.
 
     .EXAMPLE
     Enable-LongFilePaths
@@ -733,7 +732,6 @@ function Enable-LongFilePaths {
         # Set value to 1
         Set-ItemProperty -Path $regPath -Name $valueName -Value 1 -Type DWord
         Write-Host "✅ Long file paths have been enabled (LongPathsEnabled = 1)." -ForegroundColor Green
-        Write-Host "🔁 You must restart your system for the change to take effect." -ForegroundColor Cyan
     }
     catch {
         Write-Error "❌ Failed to enable long file paths: $_"
