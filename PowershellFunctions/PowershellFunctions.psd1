@@ -114,7 +114,7 @@
 
             # ReleaseNotes of this module
             ReleaseNotes = @'
-Version 1.6.0: Added Enable-LongFilePaths to programmatically enable support for file paths longer than 260 characters. The function checks the current registry value and only modifies it if necessary. Restart is no longer required on modern Windows systems.
+Version 1.6.0: Added Enable-LongFilePaths to programmatically enable support for file paths longer than 260 characters. The function checks the current registry value and only modifies it if necessary.
 
 Version 1.5.0: Add-ToPath and Remove-FromPath now automatically call `refreshenv` if available, updating the current session immediately after modifying the system PATH.
 
