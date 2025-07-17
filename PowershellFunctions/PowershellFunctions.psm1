@@ -699,3 +699,43 @@ function Get-PowershellPath {
         $i++
     } | Format-Table -AutoSize
 }
+
+function Enable-LongFilePaths {
+    <#
+    .SYNOPSIS
+    Enables long file path support in Windows (over 260 characters).
+
+    .DESCRIPTION
+    Modifies the registry to set LongPathsEnabled to 1. Requires admin privileges.
+    A reboot is needed for the change to take effect.
+
+    .EXAMPLE
+    Enable-LongFilePaths
+    #>
+
+    $regPath = "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem"
+    $valueName = "LongPathsEnabled"
+
+    try {
+        # Check if running as admin
+        if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
+            throw "❌ This script must be run as Administrator."
+        }
+
+        # Get current value
+        $current = Get-ItemProperty -Path $regPath -Name $valueName -ErrorAction Stop
+
+        if ($current.$valueName -eq 1) {
+            Write-Host "ℹ️ Long file paths are already enabled (LongPathsEnabled = 1)." -ForegroundColor Yellow
+            return
+        }
+
+        # Set value to 1
+        Set-ItemProperty -Path $regPath -Name $valueName -Value 1 -Type DWord
+        Write-Host "✅ Long file paths have been enabled (LongPathsEnabled = 1)." -ForegroundColor Green
+        Write-Host "🔁 You must restart your system for the change to take effect." -ForegroundColor Cyan
+    }
+    catch {
+        Write-Error "❌ Failed to enable long file paths: $_"
+    }
+}
