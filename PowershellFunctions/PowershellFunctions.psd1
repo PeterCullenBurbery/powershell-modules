@@ -114,6 +114,8 @@
 
             # ReleaseNotes of this module
             ReleaseNotes             = @'
+Version 1.7.1: Removed Start-ProcessLongFilePath from the module. The DLL-based cmdlet was deemed too complex and unreliable in PowerShell module context. Functionality may return in a simplified form later.
+
 Version 1.7.0: Added Start-ProcessLongFilePath, a wrapper for a C#-based cmdlet that launches processes using paths exceeding Windows MAX_PATH limitations. Useful for deeply nested folders or long file names. Includes support for optional arguments.
 
 Version 1.6.0: Added Enable-LongFilePaths to programmatically enable support for file paths longer than 260 characters. The function checks the current registry value and only modifies it if necessary.
