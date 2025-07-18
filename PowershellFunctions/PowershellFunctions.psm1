@@ -32,8 +32,13 @@ function Start-ProcessLongFilePath {
         [string]$Arguments
     )
 
-    # Call the C# cmdlet from the imported module to avoid recursion
-    Microsoft.PowerShell.LongPaths\Start-ProcessLongFilePath @PSBoundParameters
+    # Call the C# cmdlet class directly to avoid recursion
+    $cmdlet = [StartProcessLongFilePathCmdlet.StartProcessLongFilePathCommand]::new()
+    $cmdlet.Path = $Path
+    if ($PSBoundParameters.ContainsKey("Arguments")) {
+        $cmdlet.Arguments = $Arguments
+    }
+    $cmdlet.Invoke()
 }
 
 function Get-IanaTimeZone {
