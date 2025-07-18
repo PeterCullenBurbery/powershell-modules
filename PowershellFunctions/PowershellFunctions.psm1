@@ -1,4 +1,41 @@
-﻿function Get-IanaTimeZone {
+﻿# Import C# Cmdlets
+$module_root = $PSScriptRoot
+$dll_path = Join-Path $module_root 'c-sharp-projects\Start-ProcessLongFilePath\StartProcessLongFilePath\bin\Release\net9.0\StartProcessLongFilePath.dll'
+if (Test-Path $dll_path) {
+    Import-Module $dll_path -Force
+}
+
+function Start-ProcessLongFilePath {
+    <#
+    .SYNOPSIS
+    Starts a process using a long file path.
+
+    .DESCRIPTION
+    Wrapper around the C# cmdlet that launches a process when the path exceeds Windows MAX_PATH (260 characters).
+
+    .PARAMETER Path
+    The full path to the executable you want to launch.
+
+    .PARAMETER Arguments
+    (Optional) Command-line arguments to pass to the executable.
+
+    .EXAMPLE
+    Start-ProcessLongFilePath -Path "C:\very\long\path\to\app.exe" -Arguments "-arg1 -arg2"
+    #>
+
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$Path,
+
+        [Parameter(Mandatory = $false)]
+        [string]$Arguments
+    )
+
+    Microsoft.PowerShell.LongPaths.StartProcessLongFilePathCommand @PSBoundParameters
+}
+
+function Get-IanaTimeZone {
     $win_tz = (Get-TimeZone).Id
     $iana_tz = $null
 

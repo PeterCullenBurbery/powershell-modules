@@ -1,0 +1,34 @@
+# Ignore build artifacts in all folders
+**/bin/
+**/obj/
+
+# Ignore user-specific IDE/VS settings
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+
+# Ignore Rider IDE files
+.idea/
+
+# Ignore generated files
+*.g.cs
+*.GeneratedMSBuildEditorConfig.editorconfig
+*.GlobalUsings.g.cs
+
+# Ignore dotnet CLI tool artifacts at any level
+**/.dotnet_tools/
+
+# Ignore NuGet-related files
+*.nupkg
+*.snupkg
+project.assets.json
+project.nuget.cache
+*.csproj.nuget.g.props
+*.csproj.nuget.g.targets
+*.csproj.FileListAbsolute.txt
+
+# Optional: OS-specific
+.DS_Store
+Thumbs.db
