@@ -13,7 +13,7 @@
     # This will be updated to something like RootModule = ...
 
     # Version number of this module.
-    ModuleVersion     = '1.7.1'
+    ModuleVersion     = '1.7.2'
 
     # Supported PSEditions
     # CompatiblePSEditions = @()
@@ -114,7 +114,9 @@
 
             # ReleaseNotes of this module
             ReleaseNotes             = @'
-Version 1.7.1: Removed Start-ProcessLongFilePath from the module. The DLL-based cmdlet was deemed too complex and unreliable in PowerShell module context. Functionality may return in a simplified form later.
+Version 1.7.2: Update release notes.
+
+Version 1.7.1: Removed Start-ProcessLongFilePath from the module. The DLL-based cmdlet was deemed too complex.
 
 Version 1.7.0: Added Start-ProcessLongFilePath, a wrapper for a C#-based cmdlet that launches processes using paths exceeding Windows MAX_PATH limitations. Useful for deeply nested folders or long file names. Includes support for optional arguments.
 
