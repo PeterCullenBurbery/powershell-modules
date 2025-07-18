@@ -32,7 +32,8 @@ function Start-ProcessLongFilePath {
         [string]$Arguments
     )
 
-    Microsoft.PowerShell.LongPaths.StartProcessLongFilePathCommand @PSBoundParameters
+    # Call the cmdlet by name instead of by C# class
+    & 'Start-ProcessLongFilePath' @PSBoundParameters
 }
 
 function Get-IanaTimeZone {
