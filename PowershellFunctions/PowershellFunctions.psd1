@@ -13,7 +13,7 @@
     # This will be updated to something like RootModule = ...
 
     # Version number of this module.
-    ModuleVersion     = '1.7.2'
+    ModuleVersion     = '1.7.3'
 
     # Supported PSEditions
     # CompatiblePSEditions = @()
@@ -114,6 +114,8 @@
 
             # ReleaseNotes of this module
             ReleaseNotes             = @'
+Version 1.7.3: Removed C# components. StartProcessLongFilePath was not working so I removed it.
+
 Version 1.7.2: Update release notes.
 
 Version 1.7.1: Removed Start-ProcessLongFilePath from the module. The DLL-based cmdlet was deemed too complex.
