@@ -13,7 +13,7 @@
     # This will be updated to something like RootModule = ...
 
     # Version number of this module.
-    ModuleVersion     = '1.7.3'
+    ModuleVersion     = '1.8.0'
 
     # Supported PSEditions
     # CompatiblePSEditions = @()
@@ -35,7 +35,7 @@
     # Some rights reserved.
 
     # Description of the functionality provided by this module
-    Description       = 'PowerShell utilities for configuring Windows systems, managing environments, customizing time and date settings, and automating administrative tasks.'
+    Description       = 'PowerShell utilities for configuring Windows systems, managing environments, customizing time and date settings, and automating administrative tasks. PowershellFunctions is no longer used. Use either PowershellFunctions005@https://www.powershellgallery.com/packages/PowershellFunctions005/ or PowershellFunctions007@https://www.powershellgallery.com/packages/PowershellFunctions007/. PowershellFunctions005/PowershellFunctions007 will be updated. PowershellFunctions is no longer being maintained.'
     #This will be updated.
 
     # Minimum version of the PowerShell engine required by this module
@@ -114,6 +114,8 @@
 
             # ReleaseNotes of this module
             ReleaseNotes             = @'
+Version 1.8.0: Updated release notes. PowershellFunctions@https://www.powershellgallery.com/packages/PowershellFunctions/ is no longer actively maintained. Moving on torward PowershellFunctions005@https://www.powershellgallery.com/packages/PowershellFunctions005/ and PowershellFunctions007@https://www.powershellgallery.com/packages/PowershellFunctions007/.
+
 Version 1.7.3: Removed C# components. StartProcessLongFilePath was not working so I removed it.
 
 Version 1.7.2: Update release notes.
