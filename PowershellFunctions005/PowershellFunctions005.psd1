@@ -13,13 +13,13 @@
     # This will be updated to something like RootModule = ...
 
     # Version number of this module.
-    ModuleVersion     = '1.8.1'
+    ModuleVersion     = '1.8.2'
 
     # Supported PSEditions
     CompatiblePSEditions = @('Desktop')
 
     # ID used to uniquely identify this module
-    GUID              = '243fc549-c719-4a64-a4b8-884dfd4b2e76'
+    GUID              = 'a9b516ef-fbf4-4b83-805f-133fb59117d9'
 
     #This will be updated to something like ....
 
@@ -114,6 +114,8 @@
 
             # ReleaseNotes of this module
             ReleaseNotes             = @'
+Version 1.8.2: Updated GUID. GUID was the same as PowershellFunctions@https://www.powershellgallery.com/packages/PowershellFunctions/.
+
 Version 1.8.1: Adds enforcement to block PowerShell 7+ from importing the module. A PSEdition and version check was added to the top of the .psm1 file to prevent accidental usage in PowerShell Core.
 
 Version 1.8.0: This release locks the module to Windows PowerShell 5.1 only. Fixes an issue with 0 bytes files. Before, Get-FileSizeHumanReadable "C:\empty-folder" would return " bytes". Now Get-FileSizeHumanReadable "C:\empty-folder" returns "0 bytes".

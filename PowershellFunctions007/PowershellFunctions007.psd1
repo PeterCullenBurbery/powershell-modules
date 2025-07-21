@@ -19,7 +19,7 @@
     CompatiblePSEditions = @('Core')
 
     # ID used to uniquely identify this module
-    GUID              = '243fc549-c719-4a64-a4b8-884dfd4b2e76'
+    GUID              = 'b740db4c-cb21-4810-8e2a-acc11d68e7fb'
 
     #This will be updated to something like ....
 
