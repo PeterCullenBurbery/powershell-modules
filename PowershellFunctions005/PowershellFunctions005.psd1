@@ -13,7 +13,7 @@
     # This will be updated to something like RootModule = ...
 
     # Version number of this module.
-    ModuleVersion     = '1.8.0'
+    ModuleVersion     = '1.8.1'
 
     # Supported PSEditions
     CompatiblePSEditions = @('Desktop')
@@ -114,6 +114,8 @@
 
             # ReleaseNotes of this module
             ReleaseNotes             = @'
+Version 1.8.1: Adds enforcement to block PowerShell 7+ from importing the module. A PSEdition and version check was added to the top of the .psm1 file to prevent accidental usage in PowerShell Core.
+
 Version 1.8.0: This release locks the module to Windows PowerShell 5.1 only. Fixes an issue with 0 bytes files. Before, Get-FileSizeHumanReadable "C:\empty-folder" would return " bytes". Now Get-FileSizeHumanReadable "C:\empty-folder" returns "0 bytes".
 
 Version 1.7.3: Removed C# components. StartProcessLongFilePath was not working so I removed it.
