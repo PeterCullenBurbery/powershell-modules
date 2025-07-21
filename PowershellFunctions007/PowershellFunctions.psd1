@@ -16,7 +16,7 @@
     ModuleVersion     = '1.7.3'
 
     # Supported PSEditions
-    # CompatiblePSEditions = @()
+    CompatiblePSEditions = @('Core')
 
     # ID used to uniquely identify this module
     GUID              = '243fc549-c719-4a64-a4b8-884dfd4b2e76'
@@ -39,7 +39,7 @@
     #This will be updated.
 
     # Minimum version of the PowerShell engine required by this module
-    # PowerShellVersion = ''
+    PowerShellVersion = '7.0'
 
     # Name of the PowerShell host required by this module
     # PowerShellHostName = ''

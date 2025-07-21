@@ -494,22 +494,12 @@ function Get-FileSizeHumanReadable {
         throw "Path '$Path' does not exist."
     }
 
-    $item = Get-Item -LiteralPath $Path
+    $totalBytes = 0
 
+    $item = Get-Item -LiteralPath $Path
     if ($item.PSIsContainer) {
-        # Use PSVersionTable to determine PowerShell version
-        if ($PSVersionTable.PSVersion.Major -ge 7) {
-            # PowerShell 7+ with null-coalescing operator
-            $totalBytes = (
-                (Get-ChildItem -Path $Path -Recurse -File -Force -ErrorAction SilentlyContinue |
-                 Measure-Object -Property Length -Sum).Sum
-            ) ?? 0
-        } else {
-            # PowerShell 5.1 fallback
-            $sizeResult = Get-ChildItem -Path $Path -Recurse -File -Force -ErrorAction SilentlyContinue |
-                          Measure-Object -Property Length -Sum
-            $totalBytes = if ($sizeResult.Sum -ne $null) { $sizeResult.Sum } else { 0 }
-        }
+        $totalBytes = ((Get-ChildItem -Path $Path -Recurse -File -Force -ErrorAction SilentlyContinue |
+                       Measure-Object -Property Length -Sum).Sum) ?? 0
     } else {
         $totalBytes = $item.Length
     }
