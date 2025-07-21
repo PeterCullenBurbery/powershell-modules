@@ -504,16 +504,12 @@ function Get-FileSizeHumanReadable {
         $totalBytes = $item.Length
     }
 
-    if ($totalBytes -ge 1TB) {
-        return ('{0:N3} TB' -f ($totalBytes / 1TB))
-    } elseif ($totalBytes -ge 1GB) {
-        return ('{0:N3} GB' -f ($totalBytes / 1GB))
-    } elseif ($totalBytes -ge 1MB) {
-        return ('{0:N3} MB' -f ($totalBytes / 1MB))
-    } elseif ($totalBytes -ge 1KB) {
-        return ('{0:N3} KB' -f ($totalBytes / 1KB))
-    } else {
-        return "$totalBytes bytes"
+    switch ($true) {
+        { $totalBytes -ge 1TB } { return '{0:N3} TB' -f ($totalBytes / 1TB) }
+        { $totalBytes -ge 1GB } { return '{0:N3} GB' -f ($totalBytes / 1GB) }
+        { $totalBytes -ge 1MB } { return '{0:N3} MB' -f ($totalBytes / 1MB) }
+        { $totalBytes -ge 1KB } { return '{0:N3} KB' -f ($totalBytes / 1KB) }
+        default                { return "$totalBytes bytes" }
     }
 }
 
