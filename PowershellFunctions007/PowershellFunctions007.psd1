@@ -13,7 +13,7 @@
     # This will be updated to something like RootModule = ...
 
     # Version number of this module.
-    ModuleVersion     = '1.8.0'
+    ModuleVersion     = '1.8.1'
 
     # Supported PSEditions
     CompatiblePSEditions = @('Core')
@@ -114,6 +114,8 @@
 
             # ReleaseNotes of this module
             ReleaseNotes             = @'
+Version 1.8.1: Added runtime enforcement of PowerShell 7 (Core edition) to the module file. Now, if the module is imported in an unsupported host (e.g., Windows PowerShell 5.1), it throws a clear exception. This guarantees the module is only run where PowerShell 7+ features like ?? are supported.
+
 Version 1.8.0: This release locks the module to Windows PowerShell 7 only. This version uses 7-syntax like ?? null-coalescing operator. Fixes an issue with 0 bytes files. Before, Get-FileSizeHumanReadable "C:\empty-folder" would return " bytes". Now Get-FileSizeHumanReadable "C:\empty-folder" returns "0 bytes".
 
 Version 1.7.3: Removed C# components. StartProcessLongFilePath was not working so I removed it.

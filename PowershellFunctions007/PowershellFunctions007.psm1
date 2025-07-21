@@ -1,4 +1,8 @@
-﻿function Get-IanaTimeZone {
+﻿if ($PSEdition -ne 'Core' -or $PSVersionTable.PSVersion.Major -lt 7) {
+    throw "This module is only supported in PowerShell 7 or higher (PSEdition 'Core')."
+}
+
+function Get-IanaTimeZone {
     $win_tz = (Get-TimeZone).Id
     $iana_tz = $null
 
