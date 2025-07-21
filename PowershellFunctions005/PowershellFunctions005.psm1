@@ -1,4 +1,8 @@
-﻿function Get-IanaTimeZone {
+﻿if ($PSEdition -ne 'Desktop' -or $PSVersionTable.PSVersion.Major -ne 5) {
+    throw "This module supports only Windows PowerShell 5.1."
+}
+
+function Get-IanaTimeZone {
     $win_tz = (Get-TimeZone).Id
     $iana_tz = $null
 
