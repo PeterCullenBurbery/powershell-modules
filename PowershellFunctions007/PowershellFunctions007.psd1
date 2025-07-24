@@ -13,7 +13,7 @@
     # This will be updated to something like RootModule = ...
 
     # Version number of this module.
-    ModuleVersion     = '1.8.2'
+    ModuleVersion     = '1.9.0'
 
     # Supported PSEditions
     CompatiblePSEditions = @('Core')
@@ -114,6 +114,8 @@
 
             # ReleaseNotes of this module
             ReleaseNotes             = @'
+Version 1.9.0: Added Clean-Path function to normalize and deduplicate the system PATH. This function expands environment variables, removes blank entries, removes case-insensitive duplicates, and broadcasts the updated environment block. Clean-Path complements Add-ToPath and Remove-FromPath by ensuring overall cleanliness of the PATH variable.
+
 Version 1.8.2: Updated GUID. GUID was the same as PowershellFunctions@https://www.powershellgallery.com/packages/PowershellFunctions/.
 
 Version 1.8.1: Added runtime enforcement of PowerShell 7 (Core edition) to the module file. Now, if the module is imported in an unsupported host (e.g., Windows PowerShell 5.1), it throws a clear exception. This guarantees the module is only run where PowerShell 7+ features like ?? are supported.
