@@ -741,3 +741,87 @@ function Enable-LongFilePaths {
         Write-Error "❌ Failed to enable long file paths: $_"
     }
 }
+
+function Clean-Path {
+    [CmdletBinding()]
+    param ()
+
+    try {
+        # Step 1: Read PATH from registry (raw, with variables)
+        $path_key = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
+        $raw_path = Get-ItemPropertyValue -Path $path_key -Name Path
+
+        Write-Host "📍 Current PATH (raw):"
+        Write-Host $raw_path
+
+        # Step 2: Normalize, expand, deduplicate
+        $entries = $raw_path -split ';'
+        $seen = @{}
+        $rebuilt = @()
+
+        Write-Host "🔍 Normalizing entries:"
+        foreach ($entry in $entries) {
+            $trimmed = $entry.Trim().TrimEnd('\')
+            if ([string]::IsNullOrWhiteSpace($trimmed)) { continue }
+
+            $expanded = [Environment]::ExpandEnvironmentVariables($trimmed).TrimEnd('\')
+            $lower = $expanded.ToLowerInvariant()
+
+            if ($trimmed -ne $expanded) {
+                Write-Host ("   - Original: {0,-70} → Expanded: {1}" -f $trimmed, $expanded)
+            }
+
+            if (-not $seen.ContainsKey($lower)) {
+                $rebuilt += $expanded
+                $seen[$lower] = $true
+            }
+        }
+
+        $new_path = ($rebuilt -join ';')
+        Write-Host "🧹 Cleaned PATH:"
+        Write-Host $new_path
+
+        # Step 3: Write back cleaned PATH to registry
+        Set-ItemProperty -Path $path_key -Name Path -Value $new_path
+        Write-Host "✅ Cleaned PATH written to registry."
+
+        # Step 4: Broadcast environment change
+        $signature = @"
+[DllImport("user32.dll", SetLastError=true, CharSet=CharSet.Auto)]
+public static extern IntPtr SendMessageTimeout(IntPtr hWnd, uint Msg, UIntPtr wParam, string lParam, uint fuFlags, uint uTimeout, out UIntPtr lpdwResult);
+"@
+        Add-Type -MemberDefinition $signature -Name 'Win32SendMessageTimeout' -Namespace Win32Functions
+
+        $HWND_BROADCAST = [IntPtr]0xffff
+        $WM_SETTINGCHANGE = 0x001A
+        $SMTO_ABORTIFHUNG = 0x0002
+        $result = [UIntPtr]::Zero
+
+        $r = [Win32Functions.Win32SendMessageTimeout]::SendMessageTimeout(
+            $HWND_BROADCAST,
+            $WM_SETTINGCHANGE,
+            [UIntPtr]::Zero,
+            "Environment",
+            $SMTO_ABORTIFHUNG,
+            5000,
+            [ref]$result
+        )
+
+        if ($r -eq [IntPtr]::Zero) {
+            Write-Host "⚠️ Environment change broadcast may have failed."
+        } else {
+            Write-Host "📢 Environment update broadcast sent."
+        }
+
+        # Step 5: Refresh current session if possible
+        if (Get-Command -Name refreshenv -ErrorAction SilentlyContinue) {
+            Write-Host "♻️  Calling 'refreshenv' to update current session..."
+            refreshenv
+        } else {
+            Write-Host "ℹ️  'refreshenv' not available in this session."
+        }
+
+    } catch {
+        Write-Error $_
+    }
+}
