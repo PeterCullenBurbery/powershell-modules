@@ -13,7 +13,7 @@
     # This will be updated to something like RootModule = ...
 
     # Version number of this module.
-    ModuleVersion     = '1.8.2'
+    ModuleVersion     = '1.9.0'
 
     # Supported PSEditions
     CompatiblePSEditions = @('Desktop')
@@ -114,6 +114,8 @@
 
             # ReleaseNotes of this module
             ReleaseNotes             = @'
+Version 1.9.0: Added Clean-Path function to normalize and deduplicate the system PATH. This function expands environment variables, removes blank entries, removes case-insensitive duplicates, and broadcasts the updated environment block. Clean-Path complements Add-ToPath and Remove-FromPath by ensuring overall cleanliness of the PATH variable.
+
 Version 1.8.2: Updated GUID. GUID was the same as PowershellFunctions@https://www.powershellgallery.com/packages/PowershellFunctions/.
 
 Version 1.8.1: Adds enforcement to block PowerShell 7+ from importing the module. A PSEdition and version check was added to the top of the .psm1 file to prevent accidental usage in PowerShell Core.
