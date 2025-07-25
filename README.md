@@ -1,2 +1,4 @@
 # powershell-modules
 powershell modules
+
+I used to store Powershell modules in https://github.com/PeterCullenBurbery/powershell-modules. I realized I needed versioning so I moved modules to their own repositories. This repository is deprecated. See https://github.com/PeterCullenBurbery/powershell-functions-005 and https://github.com/PeterCullenBurbery/powershell-functions-007 and https://github.com/PeterCullenBurbery/powershell-functions-deprecated-module (no longer maintained). I would advise studying https://github.com/PeterCullenBurbery/powershell-functions-005 (for Powershell 005) and https://github.com/PeterCullenBurbery/powershell-functions-007 (for Powershell 007). https://github.com/PeterCullenBurbery/powershell-functions-deprecated-module is no longer actively maintained. It was a module before I split.
